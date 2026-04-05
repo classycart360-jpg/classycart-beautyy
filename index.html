@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassyCart | Future of Beauty</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #d4af37;
+            --bg: #050505;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --gold-glow: rgba(212, 175, 55, 0.2);
+            --soft-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body, html { 
+            margin: 0; padding: 0; background: var(--bg); color: white; 
+            font-family: 'Montserrat', sans-serif; overflow-x: hidden;
+        }
+
+        /* --- 1. CINEMATIC INTRO --- */
+        #intro {
+            position: fixed; inset: 0; background: black; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            animation: exit 0.8s ease forwards 3.5s;
+        }
+        .intro-logo {
+            font-size: clamp(1.5rem, 8vw, 3rem); letter-spacing: 15px; font-weight: 800; opacity: 0;
+            animation: logoReveal 2s ease-out forwards 0.5s;
+        }
+        @keyframes logoReveal {
+            0% { opacity: 0; transform: scale(0.9); filter: blur(10px); }
+            100% { opacity: 1; transform: scale(1); filter: blur(0); text-shadow: 0 0 20px var(--accent); }
+        }
+        @keyframes exit { to { opacity: 0; visibility: hidden; } }
+
+        /* --- 2. CATEGORY HUB --- */
+        #hub {
+            min-height: 100vh; display: flex; flex-direction: column; justify-content: center; 
+            align-items: center; opacity: 0; animation: fadeIn 1s forwards 4s;
+            padding: 40px 20px;
+        }
+        .hub-title { font-weight: 100; letter-spacing: 8px; color: var(--accent); margin-bottom: 40px; text-align: center; }
+        
+        .cat-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 1000px; 
+        }
+        
+        /* Desktop specific grid override */
+        @media (min-width: 768px) { .cat-grid { grid-template-columns: repeat(3, 1fr); gap: 30px; } }
+
+        .cat-item {
+            height: 250px; border-radius: 20px; overflow: hidden;
+            position: relative; cursor: pointer; border: 1px solid var(--soft-border);
+            transition: 0.4s;
+        }
+        @media (min-width: 768px) { .cat-item { height: 350px; } }
+
+        .cat-item img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
+        .cat-item:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px var(--gold-glow); }
+        .cat-label {
+            position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center;
+            font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-size: 0.7rem;
+        }
+
+        /* --- 3. PRODUCT SHOWCASE --- */
+        #product-view { display: none; position: fixed; inset: 0; background: #000; z-index: 500; overflow-y: auto; }
+        
+        .drop-container { 
+            width: 100%; min-height: 100vh; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; position: relative; padding: 60px 20px; box-sizing: border-box;
+        }
+
+        /* Responsive Layout for Desktop */
+        @media (min-width: 1024px) {
+            .drop-container { flex-direction: row; padding: 0; }
+        }
+
+        .p-img-box { opacity: 0; transform: translateY(-100px); margin-bottom: 20px; z-index: 2; }
+        .p-img-box.active {
+            animation: dropStop 1s cubic-bezier(0.17, 0.89, 0.32, 1.27) forwards, float 4s ease-in-out infinite 1s;
+        }
+        .p-img-box img { max-height: 35vh; width: auto; filter: drop-shadow(0 15px 40px rgba(0,0,0,0.8)); }
+        
+        @media (min-width: 1024px) {
+            .p-img-box img { max-height: 500px; }
+            .p-img-box { position: absolute; transform: translateY(-120vh); }
+        }
+
+        .p-info {
+            width: 100%; max-width: 340px; padding: 25px; border-radius: 20px;
+            background: var(--card-glass); backdrop-filter: blur(15px);
+            border: 1px solid var(--soft-border); opacity: 0; 
+            transition: 0.8s ease 0.8s; margin-bottom: 15px;
+        }
+        
+        @media (min-width: 1024px) {
+            .p-info { position: absolute; margin-bottom: 0; }
+            .info-left { left: 8%; transform: translateX(-100px); }
+            .info-right { right: 8%; transform: translateX(100px); }
+        }
+
+        #product-view.reveal .p-info { opacity: 1; transform: translateX(0); }
+
+        .p-name { font-size: 1.1rem; font-weight: 800; margin: 0; text-transform: uppercase; }
+        .p-price { font-size: 2.2rem; font-weight: 100; color: var(--accent); margin: 10px 0; }
+        
+        .buy-btn {
+            display: block; width: 100%; padding: 15px; background: white; color: black;
+            text-align: center; text-decoration: none; font-weight: 800; border-radius: 10px;
+            transition: 0.3s; text-transform: uppercase; font-size: 0.9rem;
+        }
+        .buy-btn:hover { background: var(--accent); }
+
+        .back-nav { position: absolute; top: 20px; left: 20px; cursor: pointer; color: var(--accent); font-size: 0.8rem; z-index: 1000; }
+        
+        .cycle-nav { 
+            position: fixed; bottom: 20px; display: flex; gap: 20px; z-index: 1000; left: 50%; transform: translateX(-50%);
+        }
+        .nav-btn { background: rgba(0,0,0,0.6); border: 1px solid var(--accent); color: var(--accent); padding: 8px 20px; cursor: pointer; border-radius: 20px; font-size: 0.7rem; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes dropStop {
+            0% { transform: translateY(-50vh); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    </style>
+</head>
+<body>
+
+    <div id="intro"><div class="intro-logo">CLASSYCART</div></div>
+
+    <div id="hub">
+        <h2 class="hub-title">THE CURATION</h2>
+        <div class="cat-grid">
+            <div class="cat-item" onclick="launch('facewash')">
+                <img src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400">
+                <div class="cat-label">Face Wash</div>
+            </div>
+            <div class="cat-item" onclick="launch('serum')">
+                <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400">
+                <div class="cat-label">Serums</div>
+            </div>
+            <div class="cat-item" onclick="launch('sunscreen')">
+                <img src="https://images.unsplash.com/photo-1552046122-03184de85e08?w=400">
+                <div class="cat-label">Sunscreen</div>
+            </div>
+            <div class="cat-item" onclick="launch('bodywash')">
+                <img src="https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400">
+                <div class="cat-label">Body Wash</div>
+            </div>
+            <div class="cat-item" onclick="launch('soap')">
+                <img src="https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400">
+                <div class="cat-label">Soaps</div>
+            </div>
+            <div class="cat-item" onclick="launch('shampoo')">
+                <img src="https://images.unsplash.com/photo-1585232351009-aa87416fca90?w=400">
+                <div class="cat-label">Hair Care</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="product-view">
+        <div class="back-nav" onclick="closeView()">← BACK</div>
+        <div class="drop-container" id="display-content"></div>
+        <div class="cycle-nav">
+            <button class="nav-btn" onclick="changeProd(-1)">PREV</button>
+            <button class="nav-btn" onclick="changeProd(1)">NEXT</button>
+        </div>
+    </div>
+
+<script>
+    // [Database remains exactly the same as before - abbreviated here for length but you should keep your full list]
+    const db = {
+        facewash: [
+            { name: "Himalaya Orange C", price: "₹140", img: "https://m.media-amazon.com/images/I/41S0oF1u8CL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/3PFIdRo" },
+            { name: "POND'S Bright Beauty", price: "₹170", img: "https://m.media-amazon.com/images/I/41ItNBy0STL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4sKM0LG" },
+            { name: "Garnier Vitamin C", price: "₹209", img: "https://m.media-amazon.com/images/I/31NhlPjf1iL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4ckaQfD" },
+            { name: "Himalaya Purifying Neem", price: "₹299", img: "https://m.media-amazon.com/images/I/31nqpcRUjTL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4bQG51Q" },
+            { name: "Kulsum's Pearl Glow", price: "₹298", img: "https://m.media-amazon.com/images/I/51pVsbTtStL._SL1080_.jpg", link: "https://amzn.to/4m4x4FC" },
+            { name: "Derma Co Salicylic", price: "₹74", img: "https://m.media-amazon.com/images/I/21tUDYS10vL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4coeo0o" },
+            { name: "Plum Green Tea Pore", price: "₹130", img: "https://m.media-amazon.com/images/I/31sH0zmSEGL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4tsTdjz" },
+            { name: "Simple Refreshing Wash", price: "₹201", img: "https://m.media-amazon.com/images/I/31TMXX0kKrL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/3OgYTy8" },
+            { name: "Garnier Skin Naturals", price: "₹167", img: "https://m.media-amazon.com/images/I/61Vp0-XHx2L._SL1500_.jpg", link: "https://amzn.to/47C9b2u" },
+            { name: "Plum Niacinamide Rice", price: "₹135", img: "https://m.media-amazon.com/images/I/31AdMmzhLeL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4twYS8p" }
+        ],
+        serum: [
+            { name: "Plum 10% Vitamin C", price: "₹199", img: "https://m.media-amazon.com/images/I/51DRxcAb+DL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4m5ZgYG" },
+            { name: "Minimalist Salicylic", price: "₹237", img: "https://m.media-amazon.com/images/I/61BkX4Y+yYL._SL1500_.jpg", link: "https://amzn.to/4mbyWMT" },
+            { name: "Himalaya Brightening C", price: "₹200", img: "https://m.media-amazon.com/images/I/41PzC0MDimL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4cp1fnK" },
+            { name: "Plum Niacinamide Rice", price: "₹299", img: "https://m.media-amazon.com/images/I/31257ljA40L._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/47HJCgm" },
+            { name: "Deconstruct Vitamin C", price: "₹239", img: "https://m.media-amazon.com/images/I/51D+Z8KgKuL._SL1080_.jpg", link: "https://amzn.to/41czys8" },
+            { name: "Dermatouch Niacinamide", price: "₹152", img: "https://m.media-amazon.com/images/I/71JsI4lea4L._SL1500_.jpg", link: "https://amzn.to/4vaMpZm" },
+            { name: "Mamaearth Vitamin C", price: "₹181", img: "https://m.media-amazon.com/images/I/5127oLThZNL._SL1201_.jpg", link: "https://amzn.to/4tx1hzX" },
+            { name: "Plum Alpha Arbutin", price: "₹190", img: "https://m.media-amazon.com/images/I/41zo8JPDl-L._SL1100_.jpg", link: "https://amzn.to/4v5hhe5" }
+        ],
+        sunscreen: [
+            { name: "Himalaya SPF 50", price: "₹136", img: "https://m.media-amazon.com/images/I/61xASrTyqNL._SL1500_.jpg", link: "https://amzn.to/4sQNGU9" },
+            { name: "Dermatouch Gel SPF 50", price: "₹139", img: "https://m.media-amazon.com/images/I/41+rbSWQGRL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4clOk62" },
+            { name: "Plum Rice Water SPF 50", price: "₹141", img: "https://m.media-amazon.com/images/I/51v7arSXHbL._SL1001_.jpg", link: "https://amzn.to/4c3jVbd" },
+            { name: "Hyaluronic SPF 50", price: "₹129", img: "https://m.media-amazon.com/images/I/31dplYP1wjL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4vbaFKX" },
+            { name: "Plum Green Tea SPF 50", price: "₹142", img: "https://m.media-amazon.com/images/I/41bWY+2RdoL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4trhYwj" },
+            { name: "Econature SPF 60", price: "₹134", img: "https://m.media-amazon.com/images/I/310Bfbb0QjL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4s93AIl" },
+            { name: "POND'S SPF 35", price: "₹139", img: "https://m.media-amazon.com/images/I/311Em0PWT+L._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4m68zrD" },
+            { name: "Garnier UV Watergel", price: "₹148", img: "https://m.media-amazon.com/images/I/31i8cNGUgYL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/3O4mFNM" },
+            { name: "Lakme Sun Expert", price: "₹144", img: "https://m.media-amazon.com/images/I/31wzKI2tPpL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4caezvb" }
+        ],
+        bodywash: [
+            { name: "Dove Exfoliate Away", price: "₹251", img: "https://m.media-amazon.com/images/I/317+5x5suQL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4swXiT7" },
+            { name: "Liril Lemon & Tea Tree", price: "₹262", img: "https://m.media-amazon.com/images/I/41jZ1RkdX6L._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/41donPN" },
+            { name: "Pears Mint Glow", price: "₹280", img: "https://m.media-amazon.com/images/I/31IhQxvrJFL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4t0P5Yb" },
+            { name: "Pears Pure & Gentle", price: "₹230", img: "https://m.media-amazon.com/images/I/31gbx2nJrkL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4sUkjjI" },
+            { name: "Thriveco Exfoliating", price: "₹199", img: "https://m.media-amazon.com/images/I/41OWIn2QwYL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4vfDw10" },
+            { name: "Chemist At Play", price: "₹367", img: "https://m.media-amazon.com/images/I/51D62Rx9VjL._SL1000_.jpg", link: "https://amzn.to/4tvbNaQ" },
+            { name: "mCaffeine Glycolic", price: "₹314", img: "https://m.media-amazon.com/images/I/31xLxxgjPgL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/3PQ3W9d" },
+            { name: "mCaffeine Salicylic", price: "₹399", img: "https://m.media-amazon.com/images/I/41thKaUL6zL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4twNGbP" },
+            { name: "Dove Glow Recharge", price: "₹253", img: "https://m.media-amazon.com/images/I/31wEQFN5P5L._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4sSFbb7" },
+            { name: "Palmolive Aroma Relax", price: "₹247", img: "https://m.media-amazon.com/images/I/41ORBurK5HL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4m4L7Lm" }
+        ],
+        soap: [
+            { name: "Dettol Cologne Fresh", price: "₹122", img: "https://m.media-amazon.com/images/I/412IgFHdqcL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4sSD9Yw" },
+            { name: "Dettol Icy Cool", price: "₹168", img: "https://m.media-amazon.com/images/I/41-ZsIjeWGL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4shmFrI" },
+            { name: "Dettol Original", price: "₹168", img: "https://m.media-amazon.com/images/I/41HWKag9qnL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4cojKZv" },
+            { name: "Dabur Gulabari Pure", price: "₹116", img: "https://m.media-amazon.com/images/I/41WELcCZFWL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4dmqSXo" },
+            { name: "Patanjali Haldi Chandan", price: "₹113", img: "https://m.media-amazon.com/images/I/41BfJo+adAL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4v8vZ3F" },
+            { name: "Boroplus Antiseptic", price: "₹136", img: "https://m.media-amazon.com/images/I/51Jfr2qrwLL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/3PON5Uj" },
+            { name: "Pears Original Pack", price: "₹314", img: "https://m.media-amazon.com/images/I/41c+OcVwMCL._SL1000_.jpg", link: "https://amzn.to/4tv4lMX" },
+            { name: "Dove Sandal Glow", price: "₹201", img: "https://m.media-amazon.com/images/I/31MXKX7beHL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4mck4ho" },
+            { name: "Ghar Handmade Soap", price: "₹399", img: "https://m.media-amazon.com/images/I/71smRkud4QL._SX679_.jpg", link: "https://amzn.to/3POdem6" }
+        ],
+        shampoo: [
+            { name: "Dove Hair Fall Rescue", price: "₹160", img: "https://m.media-amazon.com/images/I/51c3ExivW0L._SL1000_.jpg", link: "https://amzn.to/4bQusrz" },
+            { name: "Dove Daily Shine", price: "₹190", img: "https://m.media-amazon.com/images/I/31QlNeYU8tL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4sholl0" },
+            { name: "Dove Intense Repair", price: "₹172", img: "https://m.media-amazon.com/images/I/31+76WQ8MOL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/3PNTfnz" },
+            { name: "Biotique Fresh Neem", price: "₹327", img: "https://m.media-amazon.com/images/I/618zSs5JZfL._SL1500_.jpg", link: "https://amzn.to/4cotoLF" },
+            { name: "Biotique Ocean Kelp", price: "₹184", img: "https://m.media-amazon.com/images/I/41YpL-jtHSL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4m8FtId" },
+            { name: "L'Oreal Hyaluron Shine", price: "₹576", img: "https://m.media-amazon.com/images/I/31T3+9pmIlL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4e0z7bJ" },
+            { name: "L'Oreal Moisture Sealing", price: "₹194", img: "https://m.media-amazon.com/images/I/31i9VQAxpvL._SY300_SX300_QL70_FMwebp_.jpg", link: "https://amzn.to/4sf40wL" }
+        ]
+    };
+
+    let curCat = '';
+    let curIdx = 0;
+
+    function launch(cat) {
+        curCat = cat; curIdx = 0;
+        document.getElementById('hub').style.display = 'none';
+        document.getElementById('product-view').style.display = 'block';
+        render();
+    }
+
+    function render() {
+        const p = db[curCat][curIdx];
+        const display = document.getElementById('display-content');
+        
+        // Reset view state
+        document.getElementById('product-view').classList.remove('reveal');
+        
+        display.innerHTML = `
+            <div class="p-img-box" id="p-img"><img src="${p.img}"></div>
+            <div class="p-info info-left">
+                <span style="color:#d4af37; letter-spacing:2px; font-size:0.6rem;">CLASSYCART ELITE</span>
+                <h1 class="p-name">${p.name}</h1>
+            </div>
+            <div class="p-info info-right">
+                <div class="p-price">${p.price}</div>
+                <a href="${p.link}" target="_blank" class="buy-btn">BUY ON AMAZON</a>
+            </div>
+        `;
+        
+        // Use a slight timeout to ensure animation triggers after DOM update
+        setTimeout(() => {
+            document.getElementById('p-img').classList.add('active');
+            document.getElementById('product-view').classList.add('reveal');
+        }, 50);
+    }
+
+    function changeProd(dir) {
+        curIdx += dir;
+        if (curIdx < 0) curIdx = db[curCat].length - 1;
+        if (curIdx >= db[curCat].length) curIdx = 0;
+        render();
+    }
+
+    function closeView() {
+        document.getElementById('product-view').style.display = 'none';
+        document.getElementById('hub').style.display = 'flex';
+    }
+</script>
+
+</body>
+</html>
