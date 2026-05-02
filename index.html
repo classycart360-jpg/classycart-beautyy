@@ -78,6 +78,7 @@
       opacity: 0;
       transform: scale(0.92) translateY(16px);
       animation: rise 1s ease forwards 0.35s;
+      border-radius: 50%;
     }
     .intro-title {
       font-family: "Cormorant Garamond", serif;
@@ -124,7 +125,6 @@
       object-fit: contain;
       border-radius: 18px;
       background: rgba(255,255,255,0.06);
-      padding: 0.3rem;
       border: 1px solid rgba(255,255,255,0.08);
     }
     .brand-copy strong {
@@ -156,7 +156,7 @@
       width: min(480px, 100%);
       padding: 0.9rem 1rem;
     }
-    .search input, .sort-wrap select {
+    .search input {
       width: 100%;
       background: transparent;
       border: 0;
@@ -164,7 +164,70 @@
       font: inherit;
       outline: none;
     }
-    .sort-wrap { padding: 0 0.9rem; min-width: 180px; }
+    .sort-wrap {
+      position: relative;
+      min-width: 220px;
+    }
+    .sort-trigger {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      text-align: left;
+      padding: 0.9rem 2.5rem 0.9rem 1rem;
+      cursor: pointer;
+      border-radius: 999px;
+      position: relative;
+    }
+    .sort-trigger::after {
+      content: "";
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-right: 2px solid rgba(246,241,234,0.78);
+      border-bottom: 2px solid rgba(246,241,234,0.78);
+      transform: translateY(-60%) rotate(45deg);
+      transition: transform 0.2s ease;
+      pointer-events: none;
+    }
+    .sort-wrap.open .sort-trigger::after {
+      transform: translateY(-35%) rotate(-135deg);
+    }
+    .sort-menu {
+      list-style: none;
+      position: absolute;
+      top: calc(100% + 0.55rem);
+      left: 0;
+      right: 0;
+      padding: 0.45rem;
+      border-radius: 18px;
+      background: rgba(10, 16, 33, 0.96);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 20px 46px rgba(0,0,0,0.35);
+      z-index: 35;
+    }
+    .sort-option {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      text-align: left;
+      padding: 0.72rem 0.78rem;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .sort-option:hover {
+      background: rgba(255,255,255,0.09);
+    }
+    .sort-option.active {
+      background: linear-gradient(135deg, rgba(244,176,119,0.34), rgba(151,241,222,0.2));
+      color: #fff;
+    }
     .hero {
       padding: 1.4rem 0 1rem;
       display: grid;
@@ -457,6 +520,7 @@
         flex-direction: column;
         align-items: stretch;
       }
+      .sort-wrap { min-width: 0; width: 100%; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .hero-panel, .spotlight, .sidebar, .content-panel { border-radius: 24px; }
     }
@@ -471,7 +535,7 @@
   <div class="cursor-glow" id="cursorGlow"></div>
   <div class="intro">
     <div class="intro-card">
-      <img class="intro-logo" src="Black White Modern Simple Bold Minimalist Logo.png" alt="ClassyCart logo">
+      <img class="intro-logo" src="images/classycartImage.jpg" alt="ClassyCart logo">
       <div class="intro-title">CLASSYCART</div>
       <div class="intro-line">you deserve better</div>
     </div>
@@ -480,7 +544,7 @@
   <div class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <img src="Black White Modern Simple Bold Minimalist Logo.png" alt="ClassyCart logo">
+        <img src="images/classycartImage.jpg" alt="ClassyCart logo">
         <div class="brand-copy">
           <strong>ClassyCart</strong>
           <span>Future Beauty Store</span>
@@ -491,14 +555,15 @@
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
           <input id="searchInput" type="text" placeholder="Search all products, categories, brands">
         </label>
-        <label class="sort-wrap">
-          <select id="sortSelect">
-            <option value="featured">Sort: Featured</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="name">Name: A to Z</option>
-          </select>
-        </label>
+        <div class="sort-wrap" id="sortWrap">
+          <button class="sort-trigger" id="sortTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">Sort: Featured</button>
+          <ul class="sort-menu" id="sortMenu" role="listbox" hidden>
+            <li><button class="sort-option active" type="button" data-value="featured" role="option" aria-selected="true">Sort: Featured</button></li>
+            <li><button class="sort-option" type="button" data-value="price-low" role="option" aria-selected="false">Price: Low to High</button></li>
+            <li><button class="sort-option" type="button" data-value="price-high" role="option" aria-selected="false">Price: High to Low</button></li>
+            <li><button class="sort-option" type="button" data-value="name" role="option" aria-selected="false">Name: A to Z</button></li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -854,7 +919,10 @@
     const productGrid = document.getElementById("productGrid");
     const emptyState = document.getElementById("emptyState");
     const searchInput = document.getElementById("searchInput");
-    const sortSelect = document.getElementById("sortSelect");
+    const sortWrap = document.getElementById("sortWrap");
+    const sortTrigger = document.getElementById("sortTrigger");
+    const sortMenu = document.getElementById("sortMenu");
+    const sortOptions = [...document.querySelectorAll(".sort-option")];
     const sectionTitle = document.getElementById("sectionTitle");
     const sectionDescription = document.getElementById("sectionDescription");
     const totalProductsEl = document.getElementById("totalProducts");
@@ -922,6 +990,28 @@
       return copy;
     }
 
+    function getSortLabel(value) {
+      if (value === "price-low") return "Price: Low to High";
+      if (value === "price-high") return "Price: High to Low";
+      if (value === "name") return "Name: A to Z";
+      return "Sort: Featured";
+    }
+
+    function closeSortMenu() {
+      sortMenu.hidden = true;
+      sortWrap.classList.remove("open");
+      sortTrigger.setAttribute("aria-expanded", "false");
+    }
+
+    function syncSortUI() {
+      sortTrigger.textContent = getSortLabel(currentSort);
+      sortOptions.forEach(option => {
+        const active = option.dataset.value === currentSort;
+        option.classList.toggle("active", active);
+        option.setAttribute("aria-selected", String(active));
+      });
+    }
+
     function renderProducts() {
       const activeSection = catalog.find(section => section.category === currentCategory) || catalog[0];
       const query = currentSearch.trim().toLowerCase();
@@ -968,9 +1058,36 @@
       renderProducts();
     });
 
-    sortSelect.addEventListener("change", event => {
-      currentSort = event.target.value;
-      renderProducts();
+    sortTrigger.addEventListener("click", () => {
+      const isOpen = !sortMenu.hidden;
+      if (isOpen) {
+        closeSortMenu();
+        return;
+      }
+      sortMenu.hidden = false;
+      sortWrap.classList.add("open");
+      sortTrigger.setAttribute("aria-expanded", "true");
+    });
+
+    sortOptions.forEach(option => {
+      option.addEventListener("click", () => {
+        currentSort = option.dataset.value;
+        syncSortUI();
+        renderProducts();
+        closeSortMenu();
+      });
+    });
+
+    document.addEventListener("click", event => {
+      if (!sortWrap.contains(event.target)) {
+        closeSortMenu();
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        closeSortMenu();
+      }
     });
 
     document.addEventListener("mousemove", event => {
@@ -983,6 +1100,7 @@
 
     updateStats();
     renderCategories();
+    syncSortUI();
     renderProducts();
   </script>
 </body>
